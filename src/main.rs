@@ -1,10 +1,10 @@
-use chrono::{prelude::*, Duration};
-use clap::{App, Arg, ArgMatches};
+use chrono::Local;
+use clap::{Arg, ArgMatches, Command};
 use notify_rust::{Notification, Timeout};
 use std::{thread, time};
 
 fn parse_args() -> ArgMatches {
-    App::new("Romodoro")
+    Command::new("Romodoro")
         .version("1.0")
         .about(
             "Time management with love from Rust\n\n \
@@ -12,31 +12,36 @@ fn parse_args() -> ArgMatches {
         )
         .author("Alessio Giambrone")
         .arg(
-            Arg::with_name("timer")
+            Arg::new("timer")
                 .short('t')
                 .long("timer")
                 .default_value("25")
-                .about("length of the work/study/... step, in minutes"),
+                .help("length of the work/study/... step, in minutes"),
         )
         .arg(
-            Arg::with_name("relax")
+            Arg::new("relax")
                 .short('r')
                 .long("relax")
                 .default_value("5")
-                .about("length of the relax step, in minutes"),
+                .help("length of the relax step, in minutes"),
         )
         .arg(
-            Arg::with_name("repetitions")
+            Arg::new("repetitions")
                 .short('x')
                 .long("repetitions")
                 .default_value("4")
-                .about("number of pomodoros"),
+                .help("number of pomodoros"),
         )
         .get_matches()
 }
 
 fn parse_number(matches: &ArgMatches, name: &str) -> u64 {
-    matches.value_of(name).unwrap().parse::<u64>().unwrap() * 60
+    matches
+        .get_one::<String>(name)
+        .unwrap()
+        .parse::<u64>()
+        .unwrap()
+        * 60
 }
 
 fn notify(summary: &str, body: &str, timeout: u64) {
@@ -49,7 +54,7 @@ fn notify(summary: &str, body: &str, timeout: u64) {
         .show()
         .expect("error while showing notification");
     // let ends = local + Duration::seconds(*timer as i64);
-    println!("{}: {}\n {}", Local::now(), summary, body);
+    println!("{:?}: {}\n {}", Local::now(), summary, body);
 }
 
 fn pomodoro_loop(timer: u64, relax: u64, repetitions: u64) {
